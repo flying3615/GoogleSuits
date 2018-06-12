@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+  <webview id="foo" src="https://www.github.com/" style="display:inline-flex; width:800px; height:600px"></webview>
+  </body>
+
+  <script>
+	  onload = () => {
+		  const webview = document.querySelector('webview')
+		  const indicator = document.querySelector('.indicator')
+
+		  const loadstart = () => {
+			  indicator.innerText = 'loading...'
+		  }
+
+		  const loadstop = () => {
+			  indicator.innerText = ''
+		  }
+
+		  webview.addEventListener('did-start-loading', loadstart)
+		  webview.addEventListener('did-stop-loading', loadstop)
+	  }
+  </script>
+</html>
