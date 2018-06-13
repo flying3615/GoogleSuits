@@ -66,8 +66,8 @@ class GoogleSuit {
 		})
 
 		this.mainWindow.on('closed', () => {
+			// this.removeObserver()
 			this.mainWindow = null;
-			this.removePlaytimeObserver()
 		});
 
 		//handle open _blank window in chrome...
@@ -81,7 +81,7 @@ class GoogleSuit {
 		//
 		// })
 
-		// this.addPlaytimeObserver()
+		this.addMailObserver()
 
 	}
 
@@ -111,14 +111,20 @@ class GoogleSuit {
 		const commonJS = (id, name) => {
 			const indexColon = id.indexOf(':')
 			const escapId = id.slice(0, indexColon) + '\\\\' + id.slice(indexColon)
+
 			return `
 				const ${name} = document.querySelector("#${escapId} a").getAttribute("href")
-				if(${name}){
-					ipc.send('reload_url',${name})
-				}else{
-					ipc.send('reload_url',${defaultPage.url})
-				}
+				ipc.send('reload_url',${name})
     	`
+			//TODO bug here!!!
+			// return `
+				// const ${name} = document.querySelector("#${escapId} a").getAttribute("href")
+				// if (${name} !== undefined) {
+				// 	ipc.send('reload_url',${name})
+				// }else{
+				// 	ipc.send('reload_url',${defaultPage.url})
+				// }
+    	// `
 		};
 		const submenu = icons.map(ic => {
 			const key = Object.keys(ic)[0]
@@ -126,7 +132,7 @@ class GoogleSuit {
 				label: ic[key],
 				click: () => {
 					const jsString = commonJS(key, ic[key])
-					console.log(jsString)
+					// console.log(jsString)
 					if (this.mainWindow.currentName !== ic[key]) {
 						this.mainWindow.webContents.executeJavaScript(jsString)
 						this.mainWindow.currentName = ic[key]
@@ -173,34 +179,24 @@ class GoogleSuit {
 	}
 
 	getIconsFromRender() {
-		this.mainWindow.webContents.executeJavaScript(`
-      const icons = Array.from(document.querySelectorAll("ul.gb_ia.gb_ba li"))
-                  .reduce((all, item) => {
-                      return [
-                        ...all,
-                        {[item.id]: item.getElementsByClassName('gb_3')[0].innerHTML}
-                      ]
-                    }, [])
-                    console.log(icons)
-      ipc.send('menu_icons',icons)
-    `);
+		const getIconsJS = fs.readFileSync(path.join(__dirname, 'renderjs/getIcons.js'), "utf8");
+		this.mainWindow.webContents.executeJavaScript(getIconsJS);
 	}
 
-	addPlaytimeObserver() {
+	addMailObserver() {
 		const obserJS = fs.readFileSync(path.join(__dirname, 'renderjs/observer.js'), "utf8");
-		console.log(obserJS)
+		// console.log(obserJS)
 		this.mainWindow.webContents.executeJavaScript(obserJS)
 	}
 
 	/**
 	 * Remove the listener to monitor the play time.
 	 */
-	removePlaytimeObserver() {
+	removeObserver() {
 		this.mainWindow.webContents.executeJavaScript(`
       observer.disconnect();
     `)
 	}
-
 }
 
 new GoogleSuit()
