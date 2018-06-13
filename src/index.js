@@ -39,6 +39,7 @@ class GoogleSuit {
 			width: 1000,
 			height: 600,
 			webPreferences: {
+				nativeWindowOpen: true,
 				javascript: true,
 				preload: path.join(__dirname, 'preload.js'),
 			},
@@ -67,6 +68,10 @@ class GoogleSuit {
 		});
 
 		//TODO handle open _blank window in chrome...
+		this.mainWindow.webContents.on('new-window',(event, url)=>{
+			event.preventDefault()
+			console.log('open url',url)
+		})
 
 	}
 
@@ -85,6 +90,7 @@ class GoogleSuit {
 			console.log('ipcMain url', icons);
 			this.loadMenus(icons)
 		});
+
 	}
 
 	loadMenus(icons) {
@@ -116,6 +122,18 @@ class GoogleSuit {
 			{
 				label: 'File',
 				submenu,
+			},
+
+			{
+				label: 'Test',
+				submenu: [
+					{
+						label: 'test',
+						click: () => {
+							this.mainWindow.open('www.github.com')
+						}
+					}
+				],
 			},
 		];
 
