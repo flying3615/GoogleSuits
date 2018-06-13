@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div>
+    <a href="#" id="changing">1</a>
+</div>
+</body>
+
+<script>
+
+	(function () {
+		let count = 1
+		const inbox = document.querySelector('#changing')
+		setInterval(() => {
+			count++
+			inbox.innerHTML = count
+		}, 2000)
+
+
+		let observer = new MutationObserver(mutations => {
+			mutations.forEach(mutation => {
+				console.log(inbox.innerHTML)
+				//			ipc.send('inbox_change', inbox.innerHTML);
+			});
+		});
+
+		observer.observe(inbox, {childList: true, characterData: true});
+	})();
+
+
+</script>
+</html>

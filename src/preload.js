@@ -1,5 +1,5 @@
-const { ipcRenderer } = require('electron');
+const {ipcRenderer} = require('electron');
 
 process.once('loaded', () => {
-  global.ipc = ipcRenderer;
+	global.ipc = ipcRenderer;
 });

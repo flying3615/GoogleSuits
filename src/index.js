@@ -1,7 +1,11 @@
-/* eslint-disable no-tabs,no-unused-expressions */
 const {app, BrowserWindow, Menu, ipcMain, shell} = require('electron');
 const path = require('path');
+const fs = require('fs')
 
+const defaultPage = {
+	url: 'https://mail.google.com',
+	name: 'Mail'
+}
 
 class GoogleSuit {
 
@@ -28,8 +32,6 @@ class GoogleSuit {
 		});
 	}
 
-
-
 	createWindow() {
 		// Create the browser window.
 		this.mainWindow = new BrowserWindow({
@@ -52,8 +54,8 @@ class GoogleSuit {
 
 		// and load the index.html of the app.
 		// mainWindow.loadURL(`file://${__dirname}/index.html`);
-		this.mainWindow.loadURL('https://mail.google.com');
-		this.mainWindow.currentName = 'Mail'
+		this.mainWindow.loadURL(defaultPage.url);
+		this.mainWindow.currentName = defaultPage.name
 
 		this.getIconsFromRender()
 		this.ipcSubscriber()
@@ -65,13 +67,21 @@ class GoogleSuit {
 
 		this.mainWindow.on('closed', () => {
 			this.mainWindow = null;
+			this.removePlaytimeObserver()
 		});
 
 		//handle open _blank window in chrome...
-		this.mainWindow.webContents.on('new-window',(event, url)=>{
+		this.mainWindow.webContents.on('new-window', (event, url) => {
 			event.preventDefault()
 			shell.openExternal(url)
 		})
+
+		// dom ready
+		// this.mainWindow.webContents.on('dom-ready', () => {
+		//
+		// })
+
+		// this.addPlaytimeObserver()
 
 	}
 
@@ -87,8 +97,12 @@ class GoogleSuit {
 		});
 
 		ipcMain.on('menu_icons', (event, icons) => {
-			console.log('ipcMain url', icons);
+			console.log('imenu icons', icons);
 			this.loadMenus(icons)
+		});
+
+		ipcMain.on('inbox_change', (event, msg) => {
+			console.log('inbox_change ', msg);
 		});
 
 	}
@@ -99,7 +113,11 @@ class GoogleSuit {
 			const escapId = id.slice(0, indexColon) + '\\\\' + id.slice(indexColon)
 			return `
 				const ${name} = document.querySelector("#${escapId} a").getAttribute("href")
-				ipc.send('reload_url',${name})
+				if(${name}){
+					ipc.send('reload_url',${name})
+				}else{
+					ipc.send('reload_url',${defaultPage.url})
+				}
     	`
 		};
 		const submenu = icons.map(ic => {
@@ -107,8 +125,10 @@ class GoogleSuit {
 			return {
 				label: ic[key],
 				click: () => {
+					const jsString = commonJS(key, ic[key])
+					console.log(jsString)
 					if (this.mainWindow.currentName !== ic[key]) {
-						this.mainWindow.webContents.executeJavaScript(commonJS(key,ic[key]))
+						this.mainWindow.webContents.executeJavaScript(jsString)
 						this.mainWindow.currentName = ic[key]
 					} else {
 						console.log('currently in the same view', ic[key])
@@ -123,7 +143,18 @@ class GoogleSuit {
 				label: 'File',
 				submenu,
 			},
-
+			{
+				label: "Edit",
+				submenu: [
+					{label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:"},
+					{label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:"},
+					{type: "separator"},
+					{label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:"},
+					{label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:"},
+					{label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:"},
+					{label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:"},
+				]
+			},
 			{
 				label: 'Test',
 				submenu: [
@@ -153,6 +184,21 @@ class GoogleSuit {
                     console.log(icons)
       ipc.send('menu_icons',icons)
     `);
+	}
+
+	addPlaytimeObserver() {
+		const obserJS = fs.readFileSync(path.join(__dirname, 'renderjs/observer.js'), "utf8");
+		console.log(obserJS)
+		this.mainWindow.webContents.executeJavaScript(obserJS)
+	}
+
+	/**
+	 * Remove the listener to monitor the play time.
+	 */
+	removePlaytimeObserver() {
+		this.mainWindow.webContents.executeJavaScript(`
+      observer.disconnect();
+    `)
 	}
 
 }
