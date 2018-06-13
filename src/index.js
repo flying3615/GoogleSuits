@@ -1,5 +1,5 @@
 /* eslint-disable no-tabs,no-unused-expressions */
-const {app, BrowserWindow, Menu, ipcMain} = require('electron');
+const {app, BrowserWindow, Menu, ipcMain, shell} = require('electron');
 const path = require('path');
 
 
@@ -67,10 +67,10 @@ class GoogleSuit {
 			this.mainWindow = null;
 		});
 
-		//TODO handle open _blank window in chrome...
+		//handle open _blank window in chrome...
 		this.mainWindow.webContents.on('new-window',(event, url)=>{
 			event.preventDefault()
-			console.log('open url',url)
+			shell.openExternal(url)
 		})
 
 	}
@@ -134,7 +134,7 @@ class GoogleSuit {
 						}
 					}
 				],
-			},
+			}
 		];
 
 		const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
