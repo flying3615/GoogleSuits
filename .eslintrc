@@ -1,9 +1,16 @@
 {
   "rules": {
-    "import/extensions": 0,
-    "import/no-extraneous-dependencies": 0,
-    "import/no-unresolved": [2, { "ignore": ["electron"] }],
-    "linebreak-style": 0,
-    "semi": [2,"never"]
+    "strict": [2, "never"],
+    "indent": [2, 2],
+    "quotes": [2, "single"],
+    "semi": [2, "never"],
+    "no-console": [2],
+    "no-alert": [2],
+    "camelcase": [2, {"properties": "always"}],
+    "comma-spacing": [2, {"before": false, "after": true}],
+    "linebreak-style": [2, "unix"],
+    "no-trailing-spaces": [2, {"skipBlankLines": true}],
+    "space-in-parens": [2, "never"],
+    "spaced-comment": [2, "always", {"block": {"exceptions": ["-+"]}}]
   }
 }

@@ -1,16 +1,24 @@
+import {extraNumFromString} from "./util";
+
+const NotificationController = require('./controller/notificationController')
+
 const {app, BrowserWindow, Menu, ipcMain, shell} = require('electron');
 const path = require('path');
 const fs = require('fs')
+
 
 const defaultPage = {
 	url: 'https://mail.google.com',
 	name: 'Mail'
 }
 
+let currentMailNum = 0
+
 class GoogleSuit {
 
-	constructor() {
+	constructor(notificationController) {
 		this.mainWindow = null
+		this.notificationController = notificationController
 		this.init()
 	}
 
@@ -46,6 +54,8 @@ class GoogleSuit {
 				preload: path.join(__dirname, 'preload.js'),
 			},
 		});
+
+		this.notificationController.window = this.mainWindow
 
 		const debug = true
 		if (debug) {
@@ -103,6 +113,16 @@ class GoogleSuit {
 
 		ipcMain.on('inbox_change', (event, msg) => {
 			console.log('inbox_change ', msg);
+			let newMailNum = extraNumFromString(msg)
+			if (newMailNum > currentMailNum) {
+				console.log('send notification ', newMailNum);
+				this.notificationController.notify(
+					'resource/icon/48-mail-message-icon.png',
+					'Msg',
+					'Body'
+				)
+			}
+			currentMailNum = newMailNum
 		});
 
 	}
@@ -118,13 +138,13 @@ class GoogleSuit {
     	`
 			//TODO bug here!!!
 			// return `
-				// const ${name} = document.querySelector("#${escapId} a").getAttribute("href")
-				// if (${name} !== undefined) {
-				// 	ipc.send('reload_url',${name})
-				// }else{
-				// 	ipc.send('reload_url',${defaultPage.url})
-				// }
-    	// `
+			// const ${name} = document.querySelector("#${escapId} a").getAttribute("href")
+			// if (${name} !== undefined) {
+			// 	ipc.send('reload_url',${name})
+			// }else{
+			// 	ipc.send('reload_url',${defaultPage.url})
+			// }
+			// `
 		};
 		const submenu = icons.map(ic => {
 			const key = Object.keys(ic)[0]
@@ -199,4 +219,5 @@ class GoogleSuit {
 	}
 }
 
-new GoogleSuit()
+const notification = new NotificationController()
+new GoogleSuit(notification)
