@@ -1,6 +1,8 @@
-const {nativeImage, Notification} = require('electron');
-const notifier = require('node-notifier');
-const path = require('path');
+import {nativeImage, Notification} from 'electron';
+import notifier from 'node-notifier';
+import path from 'path';
+import Config from '../config'
+
 class NotificationController {
 
 	constructor(window) {

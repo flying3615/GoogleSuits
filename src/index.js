@@ -1,16 +1,10 @@
-import {extraNumFromString} from "./util";
+import {extraNumFromString} from "./util"
 
-const NotificationController = require('./controller/notificationController')
-
-const {app, BrowserWindow, Menu, ipcMain, shell} = require('electron');
-const path = require('path');
-const fs = require('fs')
-
-
-const defaultPage = {
-	url: 'https://mail.google.com',
-	name: 'Mail'
-}
+import NotificationController from './controller/notificationController'
+import Config from './config'
+import {app, BrowserWindow, Menu, ipcMain, shell} from 'electron';
+import path from 'path'
+import fs from 'fs'
 
 let currentMailNum = 0
 
@@ -42,18 +36,8 @@ class GoogleSuit {
 
 	createWindow() {
 		// Create the browser window.
-		this.mainWindow = new BrowserWindow({
-			show: false,
-			transparent: true,
-			// frame: false,
-			width: 1000,
-			height: 600,
-			webPreferences: {
-				nativeWindowOpen: true,
-				javascript: true,
-				preload: path.join(__dirname, 'preload.js'),
-			},
-		});
+
+		this.mainWindow = new BrowserWindow(Config.get('mainWindow'));
 
 		this.notificationController.window = this.mainWindow
 
@@ -64,8 +48,8 @@ class GoogleSuit {
 
 		// and load the index.html of the app.
 		// mainWindow.loadURL(`file://${__dirname}/index.html`);
-		this.mainWindow.loadURL(defaultPage.url);
-		this.mainWindow.currentName = defaultPage.name
+		this.mainWindow.loadURL(Config.get('defaultPage').url);
+		this.mainWindow.currentName = Config.get('defaultPage').name
 
 		this.getIconsFromRender()
 		this.ipcSubscriber()
@@ -219,5 +203,4 @@ class GoogleSuit {
 	}
 }
 
-const notification = new NotificationController()
-new GoogleSuit(notification)
+new GoogleSuit(new NotificationController())
